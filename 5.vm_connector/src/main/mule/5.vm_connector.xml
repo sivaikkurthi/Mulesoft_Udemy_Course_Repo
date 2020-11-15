@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d963bd7c-ae75-45e5-aba6-f458586816ce" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="8d84f3c3-86ac-4328-bb53-a819a4f70d77" >
+		<vm:queues >
+			<vm:queue queueName="queue.basic" />
+			<vm:queue queueName="queue.C" />
+		</vm:queues>
+	</vm:config>
+	<flow name="publish_message_async_basic" doc:id="995faa60-705b-4301-98aa-3254c6094f15" >
+		<http:listener doc:name="HTTP POST" doc:id="e59d9840-73ba-4339-a24f-7fac217c9064" config-ref="HTTP_Listener_config" path="/async-basic"/>
+		<logger level="INFO" doc:name="LOG START" doc:id="2d572b46-1689-4e2e-ab7d-88e10e5412f0" message='"before async publish"'/>
+		<vm:publish doc:name="Publish to Queue Async" doc:id="7c514f76-5e7a-485d-b6bd-196ee8597dda" config-ref="VM_Config" queueName="queue.basic"/>
+		<logger level="INFO" doc:name="LOG END" doc:id="3fcb7a9b-f258-4c08-8b41-04a9ede253fd" message='"after async publish"'/>
+	</flow>
+	<flow name="Listener_Message_Async_Basic" doc:id="f6736cdf-81b6-4c09-82a1-3dd4215018cd" >
+		<vm:listener queueName="queue.basic" doc:name="Queue Basic Listener" doc:id="8e93407f-d908-4bdb-bad0-5e298d7548bb" config-ref="VM_Config"/>
+		<flow-ref doc:name="call flow print_payload" doc:id="bd69ad3a-69f8-44f8-a82c-46d28d79848d" name="print_payload"/>
+	</flow>
+	<flow name="print_payload" doc:id="fe31a34e-e401-4975-a2e0-f5ccbd340644" >
+		<logger level="INFO" doc:name="Logger" doc:id="aaba500c-fd87-486f-b872-109e735f8624" message="#[payload]"/>
+	</flow>
+	<flow name="publish_consume_message_sync_basic" doc:id="6a66f9e7-0dbb-469a-a70a-73afb38f1c90" >
+		<http:listener doc:name="HTTP POST" doc:id="84bc33a5-8290-4830-b3c3-cc20a6ae7196" config-ref="HTTP_Listener_config" path="/sync-basic"/>
+		<logger level="INFO" doc:name="LOG START" doc:id="482d4e35-b8d6-46bf-a967-6f37551e50e8" message='"before publish consume sync basic"'/>
+		<vm:publish-consume queueName="queue.C" doc:name="Publish to Queue and Consume response sync" doc:id="5a0baa90-b9fa-447b-933f-fe49d68493bc" config-ref="VM_Config"/>
+		<logger level="INFO" doc:name="LOG END" doc:id="34ac5d24-f81f-4210-91b9-73044c74f817" message='"after publisch consume sync basic "'/>
+	</flow>
+	<flow name="listener_message_sync_basic" doc:id="65397eb7-8a43-4ba6-a3e5-4e3ef3c9f1fc" >
+		<vm:listener doc:name="Queue C Listner" doc:id="d7526291-db13-43ef-8aff-b1debaf3260c" config-ref="VM_Config" queueName="queue.C"/>
+		<flow-ref doc:name="call flow print_payload" doc:id="aa18c549-34b4-4499-b31e-734875cbee30" name="print_payload"/>
+	</flow>
+</mule>
